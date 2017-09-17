@@ -1,3 +1,8 @@
+plugins {
+ 	id "org.unbroken-dome.test-sets" version "1.4.2"
+	id "com.jfrog.artifactory" version "4.5.2"
+}
+
 group 'ch.so.agi'
 version '1.0.1-SNAPSHOT'
 
@@ -5,21 +10,31 @@ repositories {
     mavenCentral()
 }
 
+apply plugin: 'eclipse'
 apply plugin: 'java'
-
 apply plugin: 'maven'
 apply plugin: 'maven-publish'
+apply plugin: 'org.unbroken-dome.test-sets'
+apply plugin: 'com.jfrog.artifactory'
 //apply plugin: 'findbugs'
+
+// must be before dependencies
+testSets {
+    integrationTest
+}
 
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'
     compile group: 'org.postgresql', name: 'postgresql', version: '42.1.3'
     compile group: 'org.xerial', name: 'sqlite-jdbc', version: '3.8.11.2'
     compile group: 'org.apache.derby', name: 'derby', version: '10.13.1.1'
-    // Additional driver possibilities when the need arises:
-    // - oracle jdbc driver
-    // - sqlserver jdbc driver (Microsoft)
     compile gradleApi()
+    integrationTestCompile gradleTestKit()
+    integrationTestCompile gradleApi()
+    integrationTestCompile group: 'junit', name: 'junit', version: '4.12'
+    integrationTestCompile group: 'org.testcontainers', name: 'testcontainers', version: '1.4.2'
+   	integrationTestCompile group: 'org.testcontainers', name: 'postgresql', version: '1.4.2'
+   	integrationTestCompile group: 'com.zaxxer', name: 'HikariCP', version: '2.7.1'
 }
 
 sourceCompatibility = 1.8
@@ -29,22 +44,46 @@ setNonExistingPropertyToUndefinedValue('gretlRepoUrl')
 setNonExistingPropertyToUndefinedValue('gretlRepoWriterName')
 setNonExistingPropertyToUndefinedValue('gretlRepoWriterPass')
 
-publishing{
-    publications{
-        mavenJava(MavenPublication){
+String repo = version.endsWith('SNAPSHOT') ? 'libs-snapshot-local' : 'libs-release-local'
+
+artifactory {
+    contextUrl = gretlRepoUrl
+    publish {
+        repository {
+            repoKey = repo
+            username = gretlRepoWriterName
+            password = gretlRepoWriterPass
+            maven = true
+        }
+        defaults {
+            publications ('mavenJava')
+        }
+    }
+}
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
             from components.java
         }
     }
-    repositories{
-        maven{
-            name gretlRepoName
-            url gretlRepoUrl
-            credentials {
-                username gretlRepoWriterName
-                password gretlRepoWriterPass
-            }
-        }
+}
+
+// GradleRunner runs in a separate process and does not know anything about our
+// project classpath. There is automatic injection with the Java Gradle Plugin 
+// Development plugin. Let's have a look after gretl is a plugin.
+// But there is a very very manual way (which needs also some tweaking in the 'test' build.gradle):
+task createClasspathManifest {
+    def outputDir = file("${buildDir}/resources/integrationTest")
+    inputs.files sourceSets.main.runtimeClasspath
+    outputs.dir outputDir
+    doLast {
+        outputDir.mkdirs()
+        file("$outputDir/plugin-classpath.txt").text = sourceSets.main.runtimeClasspath.join("\n")
     }
+}
+test.dependsOn(['createClasspathManifest'])
+dependencies {
+    testRuntime files(createClasspathManifest)
 }
 
 def setNonExistingPropertyToUndefinedValue(propertyName){

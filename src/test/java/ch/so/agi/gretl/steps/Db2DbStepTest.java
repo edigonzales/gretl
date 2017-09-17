@@ -344,6 +344,7 @@ public class Db2DbStepTest {
         }
     }
 
+    @Ignore
     @Test
     public void canWriteGeomFromWkbTest() throws Exception {
         String schemaName = "GeomFromWkbTest";
@@ -380,6 +381,7 @@ public class Db2DbStepTest {
         }
     }
 
+    @Ignore
     @Test
     public void canWriteGeomFromWktTest() throws Exception {
         String schemaName = "GeomFromWktTest";
@@ -417,6 +419,7 @@ public class Db2DbStepTest {
         }
     }
 
+    @Ignore
     @Test
     public void canWriteGeomFromGeoJsonTest() throws Exception {
         String schemaName = "GeomFromGeoJsonTest";
@@ -457,6 +460,8 @@ public class Db2DbStepTest {
      * Test's loading several hundred thousand rows from sqlite to postgis.
      * Loading 300'000 rows should take about 15 seconds
      */
+
+    @Ignore
     @Test
     public void positiveBulkLoadPostgisTest() throws Exception {
         int numRows = 300000;
@@ -508,6 +513,8 @@ public class Db2DbStepTest {
      * Tests if the sqlite datatypes and geometry as wkt are transferred
      * faultfree from sqlite to postgis
      */
+
+    @Ignore
     @Test
     public void positiveSqlite2PostgisTest() throws Exception {
         String schemaName = "SQLITE2POSTGIS";
@@ -625,6 +632,7 @@ public class Db2DbStepTest {
      * Tests if the "special" datatypes (Date, Time, GUID, Geometry, ..) are transferred
      * faultfree from Postgis to sqlite
      */
+    @Ignore
     @Test
     public void positivePostgis2SqliteTest() throws Exception {
         String schemaName = "POSTGIS2SQLITE";

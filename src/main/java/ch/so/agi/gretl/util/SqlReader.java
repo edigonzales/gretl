@@ -34,9 +34,9 @@ public class SqlReader {
 
     }
 
-    public static void createPushbackReader(File sqlfile) throws FileNotFoundException {
+    public static void createPushbackReader(File sqlfile) throws FileNotFoundException, UnsupportedEncodingException {
         sqlFileInputStream = new FileInputStream(sqlfile);
-        sqlFileReader = new InputStreamReader(sqlFileInputStream);
+        sqlFileReader = new InputStreamReader(sqlFileInputStream, "UTF8");
 
         reader = new PushbackReader(sqlFileReader);
     }
